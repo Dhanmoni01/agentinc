@@ -1,0 +1,151 @@
+# =========================
+# Root / Monorepo
+# =========================
+# Node & general build artifacts
+node_modules/
+**/node_modules/
+dist/
+build/
+.cache/
+.turbo/
+.tmp/
+tmp/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Env & secrets (keep examples)
+.env
+.env.*
+!.env.example
+!.env.local.example
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.local.example
+
+# Editors / IDEs
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Docker local files
+docker-compose.override.yml
+*.local.yml
+**/*.local.yml
+
+# Coverage & testing
+coverage/
+htmlcov/
+.coverage
+.coverage.*
+.nyc_output/
+.junit/
+reports/
+**/.pytest_cache/
+**/.tox/
+.pytest_cache/
+
+# Archives
+*.tar
+*.tgz
+*.gz
+*.zip
+
+# =========================
+# Frontend (Next.js) - apps/frontend
+# =========================
+apps/frontend/.next/
+apps/frontend/out/
+apps/frontend/.vercel/
+apps/frontend/.eslintcache
+apps/frontend/.storybook-cache/
+
+# If using Next image cache or other caches:
+apps/frontend/.cache/
+
+# Lockfiles (choose one; comment out others if you want to commit a specific one)
+# /apps/frontend/package-lock.json
+# /apps/frontend/yarn.lock
+# /apps/frontend/pnpm-lock.yaml
+
+# =========================
+# Backend (FastAPI / Python) - apps/backend
+# =========================
+# Python bytecode & cache
+apps/backend/__pycache__/
+apps/backend/**/__pycache__/
+**/__pycache__/
+
+# Virtual envs
+apps/backend/.venv/
+apps/backend/venv/
+.venv/
+venv/
+
+# Python packaging / build
+apps/backend/*.egg-info/
+apps/backend/.mypy_cache/
+apps/backend/.ruff_cache/
+apps/backend/.pytest_cache/
+apps/backend/.ipynb_checkpoints/
+apps/backend/.python-version
+apps/backend/pip-wheel-metadata/
+
+# SQLAlchemy/Alembic note:
+# Do NOT ignore migrations if you want them versioned.
+# apps/backend/migrations/  # <— keep tracked
+
+# Local SQLite or test dbs (if any)
+apps/backend/*.db
+apps/backend/*.sqlite
+apps/backend/*.sqlite3
+
+# Logs
+apps/backend/*.log
+apps/backend/logs/
+
+# =========================
+# n8n - apps/n8n
+# =========================
+# Local n8n runtime data (contains secrets & state)
+apps/n8n/.n8n/
+apps/n8n/.cache/
+apps/n8n/backups/
+apps/n8n/storage/
+
+# Keep exported workflows & README
+# (Place your exported JSONs under apps/n8n/workflows/ and commit them)
+# e.g. apps/n8n/workflows/posting_flow.json
+
+# =========================
+# Database volumes (if you mount locally)
+# =========================
+postgres-data/
+db-data/
+data/
+volumes/
+
+# =========================
+# Images / media caches (optional)
+# =========================
+**/.thumbs/
+**/thumbs/
+
+# =========================
+# Misc
+# =========================
+# Local tool configs (adjust if you want to commit them)
+.npmrc
+apps/frontend/.npmrc
+apps/backend/.envrc
+.direnv/
