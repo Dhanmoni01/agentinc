@@ -1,5 +1,6 @@
 import { FormEvent, ReactNode, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import GoogleIcon from "@/components/icons/GoogleIcon";
 import {
@@ -11,6 +12,7 @@ import {
 } from "@/components/icons/Lucide";
 
 export default function RegisterForm() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -21,6 +23,8 @@ export default function RegisterForm() {
   const [errors, setErrors] = useState<Partial<typeof formData> & { terms?: string }>(
     {}
   );
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -61,10 +65,40 @@ export default function RegisterForm() {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const onSubmit = (event: FormEvent) => {
+  const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
     if (!validate()) return;
-    alert("Account created! (stub)");
+    setServerError(null);
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("http://localhost:8082/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          password: formData.password,
+        }),
+      });
+
+      if (!response.ok) {
+        let message = "Registration failed. Please try again.";
+        try {
+          const data = await response.json();
+          message = data?.message || data?.detail || message;
+        } catch {
+          // ignore JSON parse issues
+        }
+        setServerError(message);
+        return;
+      }
+
+      router.push("/login?registered=1");
+    } catch (error) {
+      setServerError("Something went wrong. Check your connection and try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -85,6 +119,12 @@ export default function RegisterForm() {
       </div>
 
       <form onSubmit={onSubmit} className="space-y-5">
+        {serverError && (
+          <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
+            {serverError}
+          </p>
+        )}
+
         <Field label="Full Name" error={errors.name}>
           <InputRow>
             <UserIcon className="h-5 w-5 text-slate-400" />
@@ -168,10 +208,10 @@ export default function RegisterForm() {
 
         <Button
           type="submit"
-          disabled={!agree}
+          disabled={!agree || isSubmitting}
           className="gap-2 rounded-xl bg-gradient-to-r from-[#7C3AED] to-[#9B5CFF] py-0 text-base font-semibold shadow-lg shadow-purple-500/30 disabled:cursor-not-allowed disabled:opacity-100 disabled:brightness-90"
         >
-          Create Account
+          {isSubmitting ? "Creating Account..." : "Create Account"}
           <ArrowRightIcon className="h-5 w-5" />
         </Button>
       </form>

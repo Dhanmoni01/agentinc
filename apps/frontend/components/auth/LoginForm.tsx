@@ -1,5 +1,6 @@
 import { FormEvent, ReactNode, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
 import GoogleIcon from "@/components/icons/GoogleIcon";
 import {
@@ -10,12 +11,18 @@ import {
 } from "@/components/icons/Lucide";
 
 export default function LoginForm() {
+  const router = useRouter();
+  const params = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>(
     {}
   );
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const registered = params?.get("registered");
 
   const validate = () => {
     const nextErrors: typeof errors = {};
@@ -34,10 +41,44 @@ export default function LoginForm() {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const onSubmit = (event: FormEvent) => {
+  const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
     if (!validate()) return;
-    alert("Login successful! (stub)");
+    setServerError(null);
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("http://localhost:8082/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+
+      if (!response.ok) {
+        let message = "Invalid email or password.";
+        try {
+          const data = await response.json();
+          message = data?.message || data?.detail || message;
+        } catch {
+          // response not JSON; keep default message
+        }
+        setServerError(message);
+        return;
+      }
+
+      const data = await response.json();
+      if (data?.accessToken || data?.access_token) {
+        if (remember && data.refreshToken) {
+          localStorage.setItem("refreshToken", data.refreshToken);
+        }
+        localStorage.setItem("accessToken", data.accessToken ?? data.access_token);
+      }
+      // router.push("/dashboard");
+      alert("Login is successful")
+    } catch (error) {
+      setServerError("Unable to reach server. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -58,6 +99,17 @@ export default function LoginForm() {
       </div>
 
       <form onSubmit={onSubmit} className="space-y-5">
+        {registered && !serverError && (
+          <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            Account created successfully. You can log in now.
+          </p>
+        )}
+        {serverError && (
+          <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
+            {serverError}
+          </p>
+        )}
+
         <Field label="Email" error={errors.email}>
           <div className="flex h-12 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 focus-within:border-[#7C3AED] focus-within:bg-white">
             <MailIcon className="h-5 w-5 text-slate-400" />
@@ -101,9 +153,10 @@ export default function LoginForm() {
 
         <Button
           type="submit"
+          disabled={isSubmitting}
           className="gap-2 rounded-xl bg-gradient-to-r from-[#7C3AED] to-[#9B5CFF] py-0 text-base font-semibold shadow-lg shadow-purple-500/30"
         >
-          Login
+          {isSubmitting ? "Logging in..." : "Login"}
           <ArrowRightIcon className="h-5 w-5" />
         </Button>
       </form>
